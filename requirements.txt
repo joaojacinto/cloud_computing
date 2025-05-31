@@ -1,0 +1,6 @@
+Flask==3.0.3
+google-cloud-storage
+google-cloud-vision
+google-cloud-firestore
+python-dotenv
+gunicorn    # para Cloud Run

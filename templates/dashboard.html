@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard | Cloud Images</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+            min-height: 100vh;
+        }
+        .gallery-title {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 2.5rem;
+            color: #1976d2;
+            font-weight: 700;
+        }
+        .card-img-top {
+            max-height: 220px;
+            object-fit: cover;
+        }
+        .img-labels {
+            font-size: 0.98rem;
+            color: #1976d2;
+        }
+        .no-img {
+            text-align: center;
+            color: #888;
+            font-size: 1.2rem;
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="gallery-title mb-4">Dashboard</div>
+        <div class="row">
+            {% for imagem in imagens %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <img src="{{ imagem.url }}" class="card-img-top" alt="{{ imagem.filename }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ imagem.filename }}</h5>
+                        <p class="img-labels"><strong>Labels:</strong> {{ imagem.labels | join(', ') }}</p>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="no-img">No images found. Try uploading one!</div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('upload') }}" class="btn btn-primary me-2">Upload New Image</a>
+            <a href="{{ url_for('home') }}" class="btn btn-outline-primary">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>
