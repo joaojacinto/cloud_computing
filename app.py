@@ -1,31 +1,36 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, abort
 from google.cloud import storage, vision, firestore
 from werkzeug.utils import secure_filename
 import tempfile
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'  # Podes mudar para algo mais seguro em produção
+app.secret_key = 'supersecretkey'  # Muda para algo mais seguro em produção
 
 # Variáveis de ambiente obrigatórias
 GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME")
 FIRESTORE_COLLECTION = os.getenv("FIRESTORE_COLLECTION", "analisadas")  # default
 
-if not GCS_BUCKET_NAME:
-    raise RuntimeError("A variável de ambiente GCS_BUCKET_NAME não está definida!")
-
-# Inicializar clientes Google Cloud (automaticamente usa as credenciais do Cloud Run)
-storage_client = storage.Client()
-vision_client = vision.ImageAnnotatorClient()
-firestore_client = firestore.Client()
-bucket = storage_client.bucket(GCS_BUCKET_NAME)
+# Inicializar clientes Google Cloud só se possível
+storage_client = vision_client = firestore_client = bucket = None
+if GCS_BUCKET_NAME:
+    storage_client = storage.Client()
+    vision_client = vision.ImageAnnotatorClient()
+    firestore_client = firestore.Client()
+    bucket = storage_client.bucket(GCS_BUCKET_NAME)
+else:
+    print("AVISO: A variável de ambiente GCS_BUCKET_NAME não está definida! A aplicação não irá funcionar.")
 
 @app.route("/")
 def home():
+    if not GCS_BUCKET_NAME:
+        return "Erro: A variável de ambiente GCS_BUCKET_NAME não está definida!", 500
     return render_template("home.html")
 
 @app.route("/upload", methods=["GET", "POST"])
 def upload():
+    if not GCS_BUCKET_NAME:
+        return "Erro: A variável de ambiente GCS_BUCKET_NAME não está definida!", 500
     if request.method == "POST":
         if "file" not in request.files:
             flash("No file part")
@@ -70,12 +75,19 @@ def upload():
 
 @app.route("/dashboard")
 def dashboard():
+    if not GCS_BUCKET_NAME:
+        return "Erro: A variável de ambiente GCS_BUCKET_NAME não está definida!", 500
     images = []
     docs = firestore_client.collection(FIRESTORE_COLLECTION).stream()
     for doc in docs:
         data = doc.to_dict()
         images.append(data)
     return render_template("dashboard.html", images=images)
+
+@app.route("/health")
+def health():
+    # Simples rota de health check para diagnóstico rápido
+    return "ok", 200
 
 if __name__ == "__main__":
     # Apenas para desenvolvimento local!
