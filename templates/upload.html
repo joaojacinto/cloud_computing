@@ -19,6 +19,13 @@
             padding: 40px 30px;
             text-align: center;
         }
+        #preview {
+            display: none;
+            max-width: 100%;
+            margin-top: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px #c2e9fb;
+        }
         .footer {
             margin-top: 80px;
             color: #888;
@@ -30,7 +37,9 @@
         <h2 class="mb-4">Upload New Image</h2>
         <form action="/upload" method="POST" enctype="multipart/form-data">
             <div class="mb-3">
-                <input type="file" name="file" accept="image/*" class="form-control form-control-lg" required>
+                <input type="file" name="file" accept="image/*" class="form-control form-control-lg" required onchange="previewImage(event)">
+                <!-- Preview da imagem escolhida -->
+                <img id="preview" src="#" alt="Preview">
             </div>
             <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">Upload & Analyze</button>
         </form>
@@ -45,5 +54,23 @@
         {% endwith %}
     </div>
     <div class="footer text-center">&copy; {{ 2025 }} Cloud Images</div>
+
+    <script>
+    function previewImage(event) {
+        var input = event.target;
+        var preview = document.getElementById('preview');
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.src = '#';
+            preview.style.display = 'none';
+        }
+    }
+    </script>
 </body>
 </html>

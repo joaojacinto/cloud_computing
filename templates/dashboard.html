@@ -32,10 +32,13 @@
             font-size: 1.2rem;
             margin-top: 60px;
         }
+        .badge.bg-info {
+            font-size: 0.90em;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
-    <!-- SweetAlert2 Flash Message (sucesso/erro) -->
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <script>
@@ -60,8 +63,35 @@
                     <img src="{{ imagem.public_url }}" class="card-img-top" alt="{{ imagem.filename }}">
                     <div class="card-body">
                         <h5 class="card-title">{{ imagem.filename }}</h5>
-                        <p class="img-labels"><strong>Labels:</strong> {{ imagem.labels | join(', ') }}</p>
-                        <form action="{{ url_for('delete_image') }}" method="POST" class="delete-form">
+                        <p class="img-labels">
+                            <strong>Labels:</strong>
+                            <ul class="list-unstyled mb-1">
+                            {% for label in imagem.labels %}
+                                <li>
+                                    {{ label.description }}
+                                    {% if label.score is defined %}
+                                    <span class="badge bg-info text-dark ms-1">{{ (label.score * 100) | round(1) }}%</span>
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        </p>
+                        <p class="mb-1"><strong>Data/hora upload:</strong>
+                            {% if imagem.uploaded_at %}
+                                {{ imagem.uploaded_at|replace("T", " ")|replace("Z", "") }}
+                            {% else %}
+                                <em>Não disponível</em>
+                            {% endif %}
+                        </p>
+                        <p class="mb-2"><strong>Tamanho:</strong>
+                            {% if imagem.size %}
+                                {{ (imagem.size/1024)|round(2) }} KB
+                            {% else %}
+                                <em>Não disponível</em>
+                            {% endif %}
+                        </p>
+                        <a href="{{ imagem.public_url }}" download class="btn btn-success btn-sm mt-2 me-2">Download</a>
+                        <form action="{{ url_for('delete_image') }}" method="POST" class="delete-form" style="display:inline;">
                             <input type="hidden" name="filename" value="{{ imagem.filename }}">
                             <button type="submit" class="btn btn-danger btn-sm mt-2">Apagar</button>
                         </form>
@@ -76,15 +106,32 @@
             <a href="{{ url_for('upload') }}" class="btn btn-primary me-2">Upload New Image</a>
             <a href="{{ url_for('home') }}" class="btn btn-outline-primary">Back to Home</a>
         </div>
+
+        {% if total_pages > 1 %}
+        <nav aria-label="Dashboard pagination">
+          <ul class="pagination justify-content-center mt-4">
+            <li class="page-item {% if page == 1 %}disabled{% endif %}">
+              <a class="page-link" href="{{ url_for('dashboard', page=page-1) }}" tabindex="-1">Anterior</a>
+            </li>
+            {% for p in range(1, total_pages + 1) %}
+              <li class="page-item {% if p == page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('dashboard', page=p) }}">{{ p }}</a>
+              </li>
+            {% endfor %}
+            <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+              <a class="page-link" href="{{ url_for('dashboard', page=page+1) }}">Seguinte</a>
+            </li>
+          </ul>
+        </nav>
+        {% endif %}
     </div>
 
-    <!-- SweetAlert2 Confirmar antes de apagar -->
     <script>
     document.addEventListener('DOMContentLoaded', function () {
         const deleteForms = document.querySelectorAll('.delete-form');
         deleteForms.forEach(function(form) {
             form.addEventListener('submit', function(e) {
-                e.preventDefault(); // Impede submit imediato
+                e.preventDefault();
                 Swal.fire({
                     title: 'Tens a certeza?',
                     text: "Esta imagem será removida do dashboard e do armazenamento!",
