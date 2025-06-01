@@ -95,7 +95,7 @@ def dashboard():
             continue
 
     # PAGINAÇÃO:
-    per_page = 9
+    per_page = 3
     page = request.args.get('page', 1, type=int)
     total = len(images)
     images = sorted(images, key=lambda x: x.get("filename"))

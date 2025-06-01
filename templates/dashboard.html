@@ -2,29 +2,48 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard | Cloud Computing</title>
+    <title>Dashboard | Cloud Images</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
-            background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+            background: linear-gradient(120deg, #e0eafc 0%, #cfdef3 100%);
             min-height: 100vh;
         }
         .gallery-title {
-            margin-top: 40px;
+            margin: 40px 0 20px 0;
             text-align: center;
             font-size: 2.5rem;
             color: #1976d2;
             font-weight: 700;
         }
+        .card {
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(25,118,210,0.08);
+            transition: transform .1s;
+        }
+        .card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 8px 32px rgba(25,118,210,0.16);
+        }
         .card-img-top {
             max-height: 220px;
             object-fit: cover;
+            border-radius: 20px 20px 0 0;
+            cursor: pointer;
         }
         .img-labels {
-            font-size: 0.98rem;
+            font-size: 0.97rem;
             color: #1976d2;
+        }
+        .badge.bg-info {
+            font-size: 0.90em;
+            vertical-align: middle;
+        }
+        .footer {
+            margin-top: 100px;
+            color: #888;
         }
         .no-img {
             text-align: center;
@@ -32,20 +51,17 @@
             font-size: 1.2rem;
             margin-top: 60px;
         }
-        .badge.bg-info {
-            font-size: 0.90em;
-            vertical-align: middle;
-        }
     </style>
 </head>
 <body>
+    {% include "navbar.html" %}
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <script>
           window.onload = function() {
             Swal.fire({
               icon: 'success',
-              title: 'Sucesso!',
+              title: 'Success!',
               text: "{{ messages[0] }}",
               confirmButtonText: 'OK'
             });
@@ -55,19 +71,14 @@
     {% endwith %}
 
     <div class="container">
-        <div class="gallery-title mb-4">Dashboard</div>
-
-        <div class="text-center mt-4">
-            <a href="{{ url_for('upload') }}" class="btn btn-primary me-2">Upload New Image</a>
-            <a href="{{ url_for('home') }}" class="btn btn-outline-primary">Back to Home</a>
-            <a href="{{ url_for('about') }}" class="btn btn-outline-primary">About / Help</a>
-        </div>
-
+        <div class="gallery-title">Dashboard</div>
         <div class="row">
             {% for imagem in images %}
             <div class="col-md-6 col-lg-4 mb-4">
                 <div class="card h-100 shadow-sm">
-                    <img src="{{ imagem.public_url }}" class="card-img-top" alt="{{ imagem.filename }}">
+                    <img src="{{ imagem.public_url }}" class="card-img-top" alt="{{ imagem.filename }}"
+                         data-bs-toggle="modal" data-bs-target="#previewModal"
+                         onclick="showPreview('{{ imagem.public_url }}', '{{ imagem.filename }}')">
                     <div class="card-body">
                         <h5 class="card-title">{{ imagem.filename }}</h5>
                         <p class="img-labels">
@@ -75,33 +86,39 @@
                             <ul class="list-unstyled mb-1">
                             {% for label in imagem.labels %}
                                 <li>
-                                    {{ label.description }}
-                                    {% if label.score is defined %}
-                                    <span class="badge bg-info text-dark ms-1">{{ (label.score * 100) | round(1) }}%</span>
+                                    {% if label.description is defined %}
+                                        {{ label.description }}
+                                        {% if label.score is defined %}
+                                            <span class="badge bg-info text-dark ms-1">{{ (label.score * 100) | round(1) }}%</span>
+                                        {% endif %}
+                                    {% else %}
+                                        {{ label }}
                                     {% endif %}
                                 </li>
                             {% endfor %}
                             </ul>
                         </p>
-                        <p class="mb-1"><strong>Upload date:</strong>
+                        <p class="mb-1"><strong>Date/Time:</strong>
                             {% if imagem.uploaded_at %}
                                 {{ imagem.uploaded_at|replace("T", " ")|replace("Z", "") }}
                             {% else %}
-                                <em>Non-Available</em>
+                                <em>Not available</em>
                             {% endif %}
                         </p>
                         <p class="mb-2"><strong>Size:</strong>
                             {% if imagem.size %}
                                 {{ (imagem.size/1024)|round(2) }} KB
                             {% else %}
-                                <em>Non-Availabl</em>
+                                <em>Not available</em>
                             {% endif %}
                         </p>
-                        <a href="{{ imagem.public_url }}" download class="btn btn-success btn-sm mt-2 me-2">Download</a>
-                        <form action="{{ url_for('delete_image') }}" method="POST" class="delete-form" style="display:inline;">
-                            <input type="hidden" name="filename" value="{{ imagem.filename }}">
-                            <button type="submit" class="btn btn-danger btn-sm mt-2">Delete</button>
-                        </form>
+                        <div class="d-flex gap-2">
+                            <a href="{{ imagem.public_url }}" download class="btn btn-success btn-sm"><i class="bi bi-download"></i> Download</a>
+                            <form action="{{ url_for('delete_image') }}" method="POST" class="delete-form" style="display:inline;">
+                                <input type="hidden" name="filename" value="{{ imagem.filename }}">
+                                <button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-trash"></i> Delete</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -109,7 +126,6 @@
             <div class="no-img">No images found. Try uploading one!</div>
             {% endfor %}
         </div>
-
         {% if total_pages > 1 %}
         <nav aria-label="Dashboard pagination">
           <ul class="pagination justify-content-center mt-4">
@@ -129,15 +145,39 @@
         {% endif %}
     </div>
 
+    <!-- Modal Preview -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="previewModalLabel">Image Preview</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-center">
+            <img id="previewImg" src="" class="img-fluid rounded" style="max-height:500px;">
+            <div id="previewFilename" class="mt-2 text-muted"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer text-center">&copy; {{ 2025 }} Cloud Images • Academic GCP project</div>
+
+    <!-- Bootstrap JS bundle (for modal) + SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+    function showPreview(url, filename) {
+        document.getElementById("previewImg").src = url;
+        document.getElementById("previewFilename").innerText = filename;
+    }
     document.addEventListener('DOMContentLoaded', function () {
         const deleteForms = document.querySelectorAll('.delete-form');
         deleteForms.forEach(function(form) {
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 Swal.fire({
-                    title: 'Are you sure you want to delete this image?',
-                    text: "This image will be removed from the app and database!",
+                    title: 'Are you sure?',
+                    text: "This image will be removed from the dashboard and storage!",
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
