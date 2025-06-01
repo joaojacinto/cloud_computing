@@ -35,8 +35,6 @@
 <body>
     <div class="upload-box">
         <h2 class="mb-4">Upload New Image</h2>
-        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary w-100 mb-2">View Dashboard</a>
-        <a href="{{ url_for('home') }}" class="btn btn-link w-100">Back to Home</a>
         <form action="/upload" method="POST" enctype="multipart/form-data">
             <div class="mb-3">
                 <input type="file" name="file" accept="image/*" class="form-control form-control-lg" required onchange="previewImage(event)">
@@ -52,6 +50,8 @@
                 </div>
             {% endif %}
         {% endwith %}
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary w-100 mb-2">View Dashboard</a>
+        <a href="{{ url_for('home') }}" class="btn btn-link w-100">Back to Home</a>
     </div>
     <div class="footer text-center">&copy; {{ 2025 }} Cloud Images</div>
 
