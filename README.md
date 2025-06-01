@@ -148,7 +148,7 @@ python app.py
 
 ## 🤝 Credits
 
-- Developed by João Jacinto @ ESGTS - Cloud Computing
+- Developed by João Jacinto, Gonçalo Dias, Filipe Gato @ ESGTS - Cloud Computing
 - Powered by Google Cloud Platform
 
 ---
