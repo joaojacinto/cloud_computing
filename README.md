@@ -1,9 +1,7 @@
 
 # ☁️ Cloud Images App
 
-Academic project for the Cloud Computing course @ ESGTS
-
-![Google Cloud](https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg)
+Academic Project for the Cloud Computing course @ ESGTS
 
 ---
 
