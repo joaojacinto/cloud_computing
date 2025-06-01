@@ -82,7 +82,7 @@ def dashboard():
     for doc in docs:
         data = doc.to_dict()
         images.append(data)
-    return render_template("dashboard.html", images=images)
+    return render_template("dashboard.html", imagens=images)
 
 @app.route("/health")
 def health():
