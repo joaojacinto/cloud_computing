@@ -35,13 +35,13 @@
     </style>
 </head>
 <body>
-    <!-- SweetAlert2 Flash Message -->
+    <!-- SweetAlert2 Flash Message (sucesso/erro) -->
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <script>
           window.onload = function() {
             Swal.fire({
-              icon: 'success',  // Podes mudar para 'error' se precisares
+              icon: 'success',
               title: 'Sucesso!',
               text: "{{ messages[0] }}",
               confirmButtonText: 'OK'
@@ -61,7 +61,7 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ imagem.filename }}</h5>
                         <p class="img-labels"><strong>Labels:</strong> {{ imagem.labels | join(', ') }}</p>
-                        <form action="{{ url_for('delete_image') }}" method="POST" onsubmit="return confirm('Tens a certeza que queres apagar esta imagem?');">
+                        <form action="{{ url_for('delete_image') }}" method="POST" class="delete-form">
                             <input type="hidden" name="filename" value="{{ imagem.filename }}">
                             <button type="submit" class="btn btn-danger btn-sm mt-2">Apagar</button>
                         </form>
@@ -77,5 +77,31 @@
             <a href="{{ url_for('home') }}" class="btn btn-outline-primary">Back to Home</a>
         </div>
     </div>
+
+    <!-- SweetAlert2 Confirmar antes de apagar -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const deleteForms = document.querySelectorAll('.delete-form');
+        deleteForms.forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault(); // Impede submit imediato
+                Swal.fire({
+                    title: 'Tens a certeza?',
+                    text: "Esta imagem será removida do dashboard e do armazenamento!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sim, apagar!',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+    });
+    </script>
 </body>
 </html>
