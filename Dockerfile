@@ -11,13 +11,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copia o resto do código para a imagem
 COPY . .
 
-# Porta que o Cloud Run vai expor
+# Porta que o Cloud Run vai expor (já definida pela plataforma, mas bom ter aqui)
 ENV PORT 8080
 
-# Indica ao Flask para correr em 0.0.0.0 (acessível publicamente)
-ENV FLASK_RUN_HOST 0.0.0.0
-ENV FLASK_RUN_PORT 8080
-
-# Comando de arranque
-CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app"]
-
+# Comando de arranque usando a variável de ambiente PORT
+CMD ["gunicorn", "-b", "0.0.0.0:${PORT}", "app:app", "--workers", "1", "--threads", "8", "--timeout", "0"]
