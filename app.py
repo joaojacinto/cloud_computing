@@ -90,6 +90,28 @@ def dashboard():
             continue
     return render_template("dashboard.html", imagens=images)
 
+
+@app.route("/delete_image", methods=["POST"])
+def delete_image():
+    if not GCS_BUCKET_NAME:
+        return "Erro: A variável de ambiente GCS_BUCKET_NAME não está definida!", 500
+    filename = request.form.get("filename")
+    if not filename:
+        flash("Ficheiro não especificado.")
+        return redirect(url_for("dashboard"))
+
+    # Apagar do Storage
+    blob = bucket.blob(filename)
+    blob.delete()
+
+    # Apagar do Firestore
+    docs = firestore_client.collection(FIRESTORE_COLLECTION).where("filename", "==", filename).stream()
+    for doc in docs:
+        doc.reference.delete()
+
+    flash(f"Imagem '{filename}' apagada com sucesso!")
+    return redirect(url_for("dashboard"))
+
 @app.route("/health")
 def health():
     # Simples rota de health check para diagnóstico rápido
