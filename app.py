@@ -88,7 +88,7 @@ def dashboard():
             images.append(data)
         except NotFound:
             continue
-    return render_template("dashboard.html", imagens=images)
+    return render_template("dashboard.html", images=images)
 
 
 @app.route("/delete_image", methods=["POST"])
