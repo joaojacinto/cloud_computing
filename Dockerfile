@@ -20,3 +20,4 @@ ENV FLASK_RUN_PORT 8080
 
 # Comando de arranque
 CMD ["gunicorn", "-b", "0.0.0.0:8080", "app:app"]
+

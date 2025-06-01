@@ -1,68 +1,82 @@
 import os
-import tempfile
 from flask import Flask, render_template, request, redirect, url_for, flash
 from google.cloud import storage, vision, firestore
-from dotenv import load_dotenv
-
-load_dotenv()
+from werkzeug.utils import secure_filename
+import tempfile
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24)
+app.secret_key = 'supersecretkey'  # Podes mudar para algo mais seguro em produção
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-bucket_name = os.getenv("GCS_BUCKET_NAME")
-collection_name = os.getenv("FIRESTORE_COLLECTION", "analisadas")
+# Variáveis de ambiente obrigatórias
+GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME")
+FIRESTORE_COLLECTION = os.getenv("FIRESTORE_COLLECTION", "analisadas")  # default
 
+if not GCS_BUCKET_NAME:
+    raise RuntimeError("A variável de ambiente GCS_BUCKET_NAME não está definida!")
+
+# Inicializar clientes Google Cloud (automaticamente usa as credenciais do Cloud Run)
 storage_client = storage.Client()
 vision_client = vision.ImageAnnotatorClient()
-db = firestore.Client()
+firestore_client = firestore.Client()
+bucket = storage_client.bucket(GCS_BUCKET_NAME)
 
-@app.route("/", methods=["GET"])
+@app.route("/")
 def home():
     return render_template("home.html")
 
 @app.route("/upload", methods=["GET", "POST"])
 def upload():
     if request.method == "POST":
-        if "image" not in request.files:
+        if "file" not in request.files:
             flash("No file part")
             return redirect(request.url)
-        file = request.files["image"]
+        file = request.files["file"]
         if file.filename == "":
             flash("No selected file")
             return redirect(request.url)
         if file:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(file.filename)[1]) as tmp:
-                file.save(tmp.name)
-                temp_path = tmp.name
+            filename = secure_filename(file.filename)
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                file.save(temp_file.name)
+                temp_path = temp_file.name
 
-            blob = storage_client.bucket(bucket_name).blob(file.filename)
+            # Upload para o Cloud Storage
+            blob = bucket.blob(filename)
             blob.upload_from_filename(temp_path)
 
+            # Cloud Vision API - labels
             with open(temp_path, "rb") as image_file:
                 content = image_file.read()
             image = vision.Image(content=content)
             response = vision_client.label_detection(image=image)
             labels = [label.description for label in response.label_annotations]
 
-            db.collection(collection_name).add({
-                "filename": file.filename,
-                "url": f"https://storage.googleapis.com/{bucket_name}/{file.filename}",
-                "labels": labels
+            # Guardar resultados no Firestore
+            doc_ref = firestore_client.collection(FIRESTORE_COLLECTION).document()
+            doc_ref.set({
+                "filename": filename,
+                "labels": labels,
+                "gcs_uri": f"gs://{GCS_BUCKET_NAME}/{filename}",
+                "public_url": f"https://storage.googleapis.com/{GCS_BUCKET_NAME}/{filename}"
             })
+
+            # Apagar o ficheiro temporário
+            os.remove(temp_path)
 
             flash("Upload and analysis successful!")
             return redirect(url_for("dashboard"))
+
     return render_template("upload.html")
 
 @app.route("/dashboard")
 def dashboard():
-    imagens = []
-    docs = db.collection(collection_name).stream()
+    images = []
+    docs = firestore_client.collection(FIRESTORE_COLLECTION).stream()
     for doc in docs:
         data = doc.to_dict()
-        imagens.append(data)
-    return render_template("dashboard.html", imagens=imagens)
+        images.append(data)
+    return render_template("dashboard.html", images=images)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Apenas para desenvolvimento local!
+    app.run(host="0.0.0.0", port=8080, debug=True)
