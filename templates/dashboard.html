@@ -56,6 +56,13 @@
 
     <div class="container">
         <div class="gallery-title mb-4">Dashboard</div>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('upload') }}" class="btn btn-primary me-2">Upload New Image</a>
+            <a href="{{ url_for('home') }}" class="btn btn-outline-primary">Back to Home</a>
+            <a href="{{ url_for('about') }}" class="btn btn-link">Sobre / Ajuda</a>
+        </div>
+
         <div class="row">
             {% for imagem in images %}
             <div class="col-md-6 col-lg-4 mb-4">
@@ -101,10 +108,6 @@
             {% else %}
             <div class="no-img">No images found. Try uploading one!</div>
             {% endfor %}
-        </div>
-        <div class="text-center mt-4">
-            <a href="{{ url_for('upload') }}" class="btn btn-primary me-2">Upload New Image</a>
-            <a href="{{ url_for('home') }}" class="btn btn-outline-primary">Back to Home</a>
         </div>
 
         {% if total_pages > 1 %}

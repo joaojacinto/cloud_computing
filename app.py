@@ -132,6 +132,10 @@ def delete_image():
     flash(f"Imagem '{filename}' apagada com sucesso!")
     return redirect(url_for("dashboard"))
 
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
 @app.route("/health")
 def health():
     # Simples rota de health check para diagnóstico rápido

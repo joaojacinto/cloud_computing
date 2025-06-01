@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Sobre a App | Cloud Images</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+            min-height: 100vh;
+        }
+        .about-box {
+            margin: 60px auto;
+            max-width: 800px;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 4px 32px rgba(30,136,229,0.07);
+            padding: 40px 30px;
+        }
+        h2 {
+            color: #1976d2;
+            font-weight: 700;
+        }
+        .footer {
+            margin-top: 80px;
+            color: #888;
+        }
+        ul {
+            margin-bottom: 0.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="about-box">
+        <h2 class="mb-4">Sobre / Ajuda</h2>
+        <p>
+            <b>Cloud Images App</b> é uma aplicação desenvolvida para a disciplina de Computação na Nuvem. Permite aos utilizadores fazer upload, analisar e organizar imagens usando serviços Cloud da Google.
+        </p>
+        <h4>Serviços Cloud Utilizados:</h4>
+        <ul>
+            <li>
+                <b>Google Cloud Run</b>: Deploy da aplicação Flask containerizada, escalável, sem necessidade de gestão de servidores.
+            </li>
+            <li>
+                <b>Google Cloud Storage</b>: Armazenamento das imagens enviadas, com links públicos diretos para download.
+            </li>
+            <li>
+                <b>Google Cloud Firestore</b>: Base de dados NoSQL para guardar os metadados das imagens, etiquetas e informações extra.
+            </li>
+            <li>
+                <b>Google Cloud Vision API</b>: Análise automática das imagens, detetando objetos e gerando etiquetas/labels.
+            </li>
+        </ul>
+        <h4>Como Funciona:</h4>
+        <ol>
+            <li>O utilizador faz upload de uma imagem pela interface web.</li>
+            <li>A imagem é guardada no Cloud Storage.</li>
+            <li>É feita a análise automática com a Cloud Vision API (labels + confiança).</li>
+            <li>Os resultados e metadados (nome, data, tamanho, labels, etc) são guardados no Firestore.</li>
+            <li>No dashboard podes ver todas as imagens, fazer download, consultar detalhes, e apagar registos.</li>
+        </ol>
+        <h4>Funcionalidades:</h4>
+        <ul>
+            <li>Upload de imagens e análise automática</li>
+            <li>Dashboard com detalhes (labels, confiança, data, tamanho, etc.)</li>
+            <li>Download direto das imagens</li>
+            <li>Paginação (para grandes volumes de imagens)</li>
+            <li>Apagar imagens do Storage e do Firestore</li>
+            <li>Confirmação visual de sucesso/erro (SweetAlert2)</li>
+        </ul>
+        <h4>Arquitetura (resumo):</h4>
+        <ul>
+            <li>Frontend: Flask + HTML/CSS/Bootstrap + SweetAlert2</li>
+            <li>Backend: Python Flask, Google Cloud SDKs</li>
+            <li>Infraestrutura: Container Docker na Google Cloud Run</li>
+        </ul>
+        <h4>Ajuda / Suporte:</h4>
+        <ul>
+            <li>Se encontrares erros, garante que tens ligação à internet.</li>
+            <li>Certifica-te que as permissões da conta de serviço GCP estão corretas.</li>
+            <li>Para dúvidas técnicas, consulta a documentação dos serviços Google Cloud ou contacta o responsável do projeto.</li>
+        </ul>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('home') }}" class="btn btn-outline-primary">Voltar à Home</a>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary ms-2">Ir para o Dashboard</a>
+        </div>
+    </div>
+    <div class="footer text-center">&copy; {{ 2025 }} Cloud Images • Projeto académico GCP</div>
+</body>
+</html>

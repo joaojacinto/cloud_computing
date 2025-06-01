@@ -35,6 +35,8 @@
 <body>
     <div class="upload-box">
         <h2 class="mb-4">Upload New Image</h2>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary w-100 mb-2">View Dashboard</a>
+        <a href="{{ url_for('home') }}" class="btn btn-link w-100">Back to Home</a>
         <form action="/upload" method="POST" enctype="multipart/form-data">
             <div class="mb-3">
                 <input type="file" name="file" accept="image/*" class="form-control form-control-lg" required onchange="previewImage(event)">
@@ -43,8 +45,6 @@
             </div>
             <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">Upload & Analyze</button>
         </form>
-        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary w-100 mb-2">View Dashboard</a>
-        <a href="{{ url_for('home') }}" class="btn btn-link w-100">Back to Home</a>
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 <div class="alert alert-info mt-3">
