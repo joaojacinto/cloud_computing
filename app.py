@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, abort
 from google.cloud import storage, vision, firestore
+from google.api_core.exceptions import NotFound
 from werkzeug.utils import secure_filename
 import tempfile
 
@@ -81,7 +82,12 @@ def dashboard():
     docs = firestore_client.collection(FIRESTORE_COLLECTION).stream()
     for doc in docs:
         data = doc.to_dict()
-        images.append(data)
+        blob = bucket.blob(data['filename'])
+        try:
+            blob.reload()
+            images.append(data)
+        except NotFound:
+            continue
     return render_template("dashboard.html", imagens=images)
 
 @app.route("/health")
