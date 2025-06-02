@@ -4,7 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="eaa919cc-997d-4745-9b39-440515ec51e2" name="Changes" comment="" />
+    <list default="true" id="eaa919cc-997d-4745-9b39-440515ec51e2" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/routes/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/routes/dashboard.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/routes/main.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/routes/upload.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/services/cloud.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/app.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -13,8 +22,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Python Script" />
         <option value="HTML File" />
+        <option value="Python Script" />
       </list>
     </option>
   </component>
@@ -68,7 +77,8 @@
       <option name="presentableId" value="Default" />
       <updated>1748708031981</updated>
       <workItem from="1748708032998" duration="5396000" />
-      <workItem from="1748788426249" duration="18550000" />
+      <workItem from="1748788426249" duration="19431000" />
+      <workItem from="1748823694991" duration="644000" />
     </task>
     <servers />
   </component>

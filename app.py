@@ -1,145 +1,15 @@
-import os
-from flask import Flask, render_template, request, redirect, url_for, flash, abort
-from google.cloud import storage, vision, firestore
-from google.api_core.exceptions import NotFound
-from werkzeug.utils import secure_filename
-import tempfile
+from flask import Flask
+from routes.main import main_bp
+from routes.upload import upload_bp
+from routes.dashboard import dashboard_bp
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'
 
-GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME")
-FIRESTORE_COLLECTION = os.getenv("FIRESTORE_COLLECTION", "analisadas")
-
-storage_client = vision_client = firestore_client = bucket = None
-if GCS_BUCKET_NAME:
-    storage_client = storage.Client()
-    vision_client = vision.ImageAnnotatorClient()
-    firestore_client = firestore.Client()
-    bucket = storage_client.bucket(GCS_BUCKET_NAME)
-else:
-    print("AVISO: A variável de ambiente GCS_BUCKET_NAME não está definida! A aplicação não irá funcionar.")
-
-@app.route("/")
-def home():
-    if not GCS_BUCKET_NAME:
-        return "Erro: A variável de ambiente GCS_BUCKET_NAME não está definida!", 500
-    return render_template("home.html")
-
-@app.route("/upload", methods=["GET", "POST"])
-def upload():
-    if not GCS_BUCKET_NAME:
-        return "Erro: A variável de ambiente GCS_BUCKET_NAME não está definida!", 500
-    if request.method == "POST":
-        if "file" not in request.files:
-            flash("No file part")
-            return redirect(request.url)
-        file = request.files["file"]
-        if file.filename == "":
-            flash("No selected file")
-            return redirect(request.url)
-        if file:
-            filename = secure_filename(file.filename)
-            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-                file.save(temp_file.name)
-                temp_path = temp_file.name
-
-            blob = bucket.blob(filename)
-            blob.upload_from_filename(temp_path)
-            blob.reload()
-            file_size = blob.size  # bytes
-            upload_time = blob.updated  # timestamp
-
-            with open(temp_path, "rb") as image_file:
-                content = image_file.read()
-            image = vision.Image(content=content)
-            response = vision_client.label_detection(image=image)
-            labels = []
-            for label in response.label_annotations:
-                labels.append({
-                    "description": label.description,
-                    "score": label.score  # float entre 0 e 1
-                })
-
-            doc_ref = firestore_client.collection(FIRESTORE_COLLECTION).document()
-            doc_ref.set({
-                "filename": filename,
-                "labels": labels,
-                "gcs_uri": f"gs://{GCS_BUCKET_NAME}/{filename}",
-                "public_url": f"https://storage.googleapis.com/{GCS_BUCKET_NAME}/{filename}",
-                "size": file_size,
-                "uploaded_at": upload_time.isoformat() if upload_time else None
-            })
-
-            os.remove(temp_path)
-
-            flash("Upload and analysis successful!")
-            return redirect(url_for("dashboard"))
-
-    return render_template("upload.html")
-
-@app.route("/dashboard")
-def dashboard():
-    if not GCS_BUCKET_NAME:
-        return "Erro: A variável de ambiente GCS_BUCKET_NAME não está definida!", 500
-
-    images = []
-    docs = firestore_client.collection(FIRESTORE_COLLECTION).stream()
-    for doc in docs:
-        data = doc.to_dict()
-        blob = bucket.blob(data['filename'])
-        try:
-            blob.reload()
-            images.append(data)
-        except NotFound:
-            continue
-
-    # PAGINAÇÃO:
-    per_page = 3
-    page = request.args.get('page', 1, type=int)
-    total = len(images)
-    images = sorted(images, key=lambda x: x.get("filename"))
-
-    start = (page - 1) * per_page
-    end = start + per_page
-    paginated = images[start:end]
-
-    total_pages = (total + per_page - 1) // per_page
-
-    return render_template(
-        "dashboard.html",
-        images=paginated,
-        page=page,
-        total_pages=total_pages
-    )
-
-@app.route("/delete_image", methods=["POST"])
-def delete_image():
-    if not GCS_BUCKET_NAME:
-        return "Erro: A variável de ambiente GCS_BUCKET_NAME não está definida!", 500
-    filename = request.form.get("filename")
-    if not filename:
-        flash("Ficheiro não especificado.")
-        return redirect(url_for("dashboard"))
-
-    blob = bucket.blob(filename)
-    blob.delete()
-
-    docs = firestore_client.collection(FIRESTORE_COLLECTION).where("filename", "==", filename).stream()
-    for doc in docs:
-        doc.reference.delete()
-
-    flash(f"Imagem '{filename}' apagada com sucesso!")
-    return redirect(url_for("dashboard"))
-
-@app.route("/about")
-def about():
-    return render_template("about.html")
-
-@app.route("/health")
-def health():
-    # Simples rota de health check para diagnóstico rápido
-    return "ok", 200
+# Blueprints registration
+app.register_blueprint(main_bp)
+app.register_blueprint(upload_bp)
+app.register_blueprint(dashboard_bp)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, debug=True)
